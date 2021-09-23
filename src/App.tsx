@@ -1,34 +1,8 @@
-import React, { useCallback, useState } from "react";
+import React, { ChangeEvent, useCallback, useState } from "react";
 import styled from "styled-components";
 import "./App.css";
+import { Button, Select, TextArea } from "./components/Shared";
 import { Day01 } from "./solutions/2018_01";
-
-const TextArea = styled.textarea``;
-const Select = styled.select``;
-const Button = styled.button`
-  background-color: #FBFBFB;
-  outline: none;
-  border: 1px solid #AAAAAA;
-  border-radius: 4px;
-  font-size: 18px;
-  font-weight: 600;
-  color: #222222;
-  padding: 6px 10px;
-  align-items: center;
-  align-self: center;
-  cursor: pointer;
-  box-shadow: 0 2px 0 #AAA;
-  display: flex;
-
-  &:active {
-    box-shadow: 0 1px 0 #444;
-    background-color: #F4F4F4;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-  }
-`;
 
 const availableSolvers: Record<string, any> = {
   "2018_01": {
@@ -37,7 +11,38 @@ const availableSolvers: Record<string, any> = {
   },
 };
 
-function App() {
+type SolverListProps = {
+  selected: string;
+  onChange: (e: string) => void;
+};
+
+const SolverList = ({ selected, onChange }: SolverListProps) => {
+  return (
+    <Select value={selected} onChange={(e) => onChange(e.target.value)}>
+      <option disabled value="default">
+        -- select a solver --
+      </option>
+      {availableSolvers &&
+        Object.entries(availableSolvers).map(([k, v]) => (
+          <option key={k} value={k}>
+            {v.name}
+          </option>
+        ))}
+    </Select>
+  );
+};
+
+const Container = styled.div<{ spacing?: number }>`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  & > * {
+    margin: ${(p) => p.spacing ?? 0}px;
+  }
+`;
+
+const App = () => {
   const [problemInput, setProblemInput] = useState("");
   const [solverKey, setSolverKey] = useState("default");
   const [solverOutput, setSolverOutput] = useState("");
@@ -49,25 +54,18 @@ function App() {
   }, [solverKey, problemInput]);
 
   return (
-    <div className="App">
-      <h3>Problem Input</h3>
-      <TextArea
-        value={problemInput}
-        onChange={(e) => setProblemInput(e.target.value)}
-      />
-      <h3>Solver</h3>
-      <Select value={solverKey} onChange={(e) => setSolverKey(e.target.value)}>
-        <option disabled value="default">
-          {" "}
-          -- select a solver --{" "}
-        </option>
-        {availableSolvers &&
-          Object.entries(availableSolvers).map(([k, v]) => (
-            <option key={k} value={k}>
-              {v.name}
-            </option>
-          ))}
-      </Select>
+    <Container spacing={20} className="App">
+      <Container>
+        <h2>Problem Input</h2>
+        <TextArea
+          value={problemInput}
+          onChange={(e) => setProblemInput(e.target.value)}
+        />
+      </Container>
+      <Container>
+        <h2>Solver</h2>
+        <SolverList selected={solverKey} onChange={setSolverKey} />
+      </Container>
       <Button
         disabled={solverKey === "default" || !problemInput}
         onClick={() => {
@@ -76,9 +74,12 @@ function App() {
       >
         Run Solution
       </Button>
-      <TextArea value={solverOutput} disabled />
-    </div>
+      <Container>
+        <h2>Output</h2>
+        <TextArea value={solverOutput} disabled />
+      </Container>
+    </Container>
   );
-}
+};
 
 export default App;
